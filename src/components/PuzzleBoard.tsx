@@ -314,7 +314,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           레벨 {level} - {config.rows}x{config.cols} 퍼즐
         </h3>
         <p className="text-xs sm:text-sm text-white opacity-80">
-          기준칸과 인접한 칸을 클릭하면 바로 이동합니다
+          빈칸과 인접한 칸을 클릭하면 바로 이동합니다
         </p>
         <p className="text-xs text-green-400 mt-1 sm:mt-2">
           📋 이동 규칙: 빈 칸과 상하좌우로 인접한 조각만 이동 가능
