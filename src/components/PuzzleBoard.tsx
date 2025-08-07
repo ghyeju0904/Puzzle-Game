@@ -455,11 +455,6 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
                    position: 'absolute',
                    transform: isAnimating && selectedPiece && piece.id === selectedPiece.id ? 'scale(1.05)' : 'scale(1)',
                    transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                   animation: (selectedPiece && piece.id === selectedPiece.id) || 
-                              (isPieceMovable(piece) && showHint && hintPiece && piece.id === hintPiece.piece.id) ||
-                              (isPieceMovable(piece) && !showHint)
-                              ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-                              : 'none'
                  }}
                 initial={{ 
                   x: 0, 
@@ -504,10 +499,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
                     showHint && hintPiece && piece.id === hintPiece.piece.id
                       ? 'bg-purple-400'
                       : 'bg-green-400'
-                  }`}
-                  style={{
-                    animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-                  }}>
+                  }`}>
                     <span className="text-white text-xs font-bold">
                       {showHint && hintPiece && piece.id === hintPiece.piece.id ? '💡' : '→'}
                     </span>
@@ -528,10 +520,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           💡 검은색: 빈칸, 주황색: 이동 가능한 조각, 보라색: 힌트 조각
         </p>
         {isAnimating && (
-          <p className="text-xs text-yellow-400 mt-1"
-             style={{
-               animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-             }}>
+          <p className="text-xs text-yellow-400 mt-1">
             🔄 조각이 이동 중입니다...
           </p>
         )}
