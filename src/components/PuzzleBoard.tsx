@@ -285,14 +285,14 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
     return {
       width: pieceSize,
       height: pieceSize,
-      backgroundImage: `url(${selectedImage})`,
-      backgroundPosition: `-${backgroundX}px -${backgroundY}px`,
-      backgroundSize: `${boardSize}px ${boardSize}px`,
+      backgroundImage: piece.correctPosition === 8 ? 'none' : `url(${selectedImage})`,
+      backgroundPosition: piece.correctPosition === 8 ? 'unset' : `-${backgroundX}px -${backgroundY}px`,
+      backgroundSize: piece.correctPosition === 8 ? 'unset' : `${boardSize}px ${boardSize}px`,
       backgroundRepeat: 'no-repeat',
              border: piece.isEmpty 
          ? '2px dashed #6b7280' 
          : piece.correctPosition === 8
-         ? 'none' // 기준칸은 테두리 없음
+         ? '2px solid #374151' // 기준칸은 검은색 테두리
          : isPieceMovable(piece)
          ? '3px solid #fb923c'
          : '1px solid rgba(255, 255, 255, 0.1)',
@@ -424,11 +424,6 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
             width: boardSize,
             height: boardSize,
             position: 'relative',
-            backgroundImage: `
-              linear-gradient(45deg, transparent 49%, rgba(255,255,255,0.1) 50%, transparent 51%),
-              linear-gradient(-45deg, transparent 49%, rgba(255,255,255,0.1) 50%, transparent 51%)
-            `,
-            backgroundSize: `${pieceSize}px ${pieceSize}px`,
           }}
         >
         <AnimatePresence>
@@ -440,18 +435,18 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
             return (
               <motion.div
                 key={piece.id}
-                                 className={`absolute cursor-pointer transition-all duration-200 ${
+                                 className={`absolute transition-all duration-200 ${
                    selectedPiece && piece.id === selectedPiece.id
                      ? isAnimating 
                        ? 'border-4 border-orange-400 shadow-lg shadow-orange-400/50'
                        : 'border-4 border-yellow-400 shadow-lg shadow-yellow-400/50'
                      : piece.correctPosition === 8
-                     ? 'opacity-0 pointer-events-none' // 기준칸을 완전히 투명하게 처리
+                     ? 'bg-black border-2 border-gray-600 cursor-default' // 기준칸을 검은색 빈칸으로 처리
                      : isPieceMovable(piece)
                      ? showHint && hintPiece && piece.id === hintPiece.piece.id
-                       ? 'hover:brightness-110 hover:scale-105 border-3 border-purple-400 shadow-lg shadow-purple-400/50'
-                       : 'hover:brightness-110 hover:scale-105 border-3 border-orange-400 shadow-lg shadow-orange-400/50'
-                     : 'hover:brightness-110 hover:scale-105 opacity-40'
+                       ? 'hover:brightness-110 hover:scale-105 border-3 border-purple-400 shadow-lg shadow-purple-400/50 cursor-pointer'
+                       : 'hover:brightness-110 hover:scale-105 border-3 border-orange-400 shadow-lg shadow-orange-400/50 cursor-pointer'
+                     : 'hover:brightness-110 hover:scale-105 opacity-40 cursor-pointer'
                  }`}
                                   style={{
                    ...getPieceStyle(piece),
@@ -491,12 +486,12 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
                   duration: 0.6,
                   ease: "easeInOut"
                 }}
-                onClick={() => handlePieceClick(piece)}
-                whileHover={!piece.isEmpty && !isAnimating ? { 
+                onClick={piece.correctPosition === 8 ? undefined : () => handlePieceClick(piece)}
+                whileHover={!piece.isEmpty && !isAnimating && piece.correctPosition !== 8 ? { 
                   scale: 1.05,
                   zIndex: 10 
                 } : {}}
-                whileTap={!piece.isEmpty && !isAnimating ? { 
+                whileTap={!piece.isEmpty && !isAnimating && piece.correctPosition !== 8 ? { 
                   scale: 0.95 
                 } : {}}
                 drag={false}
@@ -530,7 +525,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           총 {pieces.length}개 조각 중 {movablePiecesCount}개 이동 가능
         </p>
         <p className="text-xs text-gray-400 mt-1">
-          💡 빈칸: 기준칸, 주황색: 이동 가능한 조각, 보라색: 힌트 조각
+          💡 검은색: 빈칸, 주황색: 이동 가능한 조각, 보라색: 힌트 조각
         </p>
         {isAnimating && (
           <p className="text-xs text-yellow-400 mt-1"
