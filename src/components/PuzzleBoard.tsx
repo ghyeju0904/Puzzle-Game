@@ -292,7 +292,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
              border: piece.isEmpty 
          ? '2px dashed #6b7280' 
          : piece.correctPosition === 8
-         ? '3px solid #9ca3af'
+         ? 'none' // 기준칸은 테두리 없음
          : isPieceMovable(piece)
          ? '3px solid #fb923c'
          : '1px solid rgba(255, 255, 255, 0.1)',
@@ -424,6 +424,11 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
             width: boardSize,
             height: boardSize,
             position: 'relative',
+            backgroundImage: `
+              linear-gradient(45deg, transparent 49%, rgba(255,255,255,0.1) 50%, transparent 51%),
+              linear-gradient(-45deg, transparent 49%, rgba(255,255,255,0.1) 50%, transparent 51%)
+            `,
+            backgroundSize: `${pieceSize}px ${pieceSize}px`,
           }}
         >
         <AnimatePresence>
@@ -441,7 +446,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
                        ? 'border-4 border-orange-400 shadow-lg shadow-orange-400/50'
                        : 'border-4 border-yellow-400 shadow-lg shadow-yellow-400/50'
                      : piece.correctPosition === 8
-                     ? 'hover:brightness-110 hover:scale-105 border-3 border-gray-400 shadow-lg shadow-gray-400/50'
+                     ? 'opacity-0 pointer-events-none' // 기준칸을 완전히 투명하게 처리
                      : isPieceMovable(piece)
                      ? showHint && hintPiece && piece.id === hintPiece.piece.id
                        ? 'hover:brightness-110 hover:scale-105 border-3 border-purple-400 shadow-lg shadow-purple-400/50'
@@ -525,7 +530,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           총 {pieces.length}개 조각 중 {movablePiecesCount}개 이동 가능
         </p>
         <p className="text-xs text-gray-400 mt-1">
-          💡 은색: 기준칸, 주황색: 이동 가능한 조각, 보라색: 힌트 조각
+          💡 빈칸: 기준칸, 주황색: 이동 가능한 조각, 보라색: 힌트 조각
         </p>
         {isAnimating && (
           <p className="text-xs text-yellow-400 mt-1"
