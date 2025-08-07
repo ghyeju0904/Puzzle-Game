@@ -35,9 +35,9 @@ const WalletConnect: React.FC<WalletConnectProps> = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg"
+        className="bg-red-500 text-white px-3 sm:px-4 py-2 rounded-lg shadow-lg mx-2"
       >
-        <p className="text-sm font-medium">
+        <p className="text-xs sm:text-sm font-medium">
           🦊 MetaMask가 설치되지 않았습니다.
           <br />
           <a
@@ -57,25 +57,27 @@ const WalletConnect: React.FC<WalletConnectProps> = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center space-y-4"
+      className="flex flex-col items-center space-y-3 sm:space-y-4"
     >
       {web3State.isConnected ? (
-        <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
-          <div className="flex items-center space-x-3">
-            <div className="w-3 h-3 bg-green-300 rounded-full animate-pulse"></div>
-            <div>
-              <p className="text-sm font-medium">
-                연결됨: {web3State.account && shortenAddress(web3State.account)}
-              </p>
-              {web3State.balance && (
-                <p className="text-xs opacity-90">
-                  잔액: {parseFloat(web3State.balance).toFixed(4)} ETH
+        <div className="bg-green-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg mx-2">
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-300 rounded-full animate-pulse"></div>
+              <div>
+                <p className="text-xs sm:text-sm font-medium">
+                  연결됨: {web3State.account && shortenAddress(web3State.account)}
                 </p>
-              )}
+                {web3State.balance && (
+                  <p className="text-xs opacity-90">
+                    잔액: {parseFloat(web3State.balance).toFixed(4)} ETH
+                  </p>
+                )}
+              </div>
             </div>
             <button
               onClick={handleDisconnect}
-              className="ml-4 px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-xs transition-colors"
+              className="px-2 sm:px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-xs transition-colors"
             >
               연결 해제
             </button>
@@ -87,11 +89,11 @@ const WalletConnect: React.FC<WalletConnectProps> = () => {
           whileTap={{ scale: 0.95 }}
           onClick={handleConnect}
           disabled={web3State.isConnecting}
-          className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg shadow-lg font-medium transition-colors flex items-center space-x-2"
+          className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg font-medium transition-colors flex items-center space-x-2 text-sm sm:text-base"
         >
           {web3State.isConnecting ? (
             <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               <span>연결 중...</span>
             </>
           ) : (

@@ -299,23 +299,23 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="text-center mb-4 sm:mb-8"
         >
-          <h1 className="text-4xl font-bold text-white mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
             🧩 Puzzle Web3 Mini Game
           </h1>
-          <p className="text-white opacity-80">
+          <p className="text-sm sm:text-base text-white opacity-80 px-2">
             사진 업로드 기반 슬라이드 퍼즐 + Web3 보상 시스템
           </p>
         </motion.div>
 
         {/* Wallet Connection */}
-        <div className="mb-8">
+        <div className="mb-4 sm:mb-8">
           <WalletConnect />
         </div>
 
@@ -328,7 +328,7 @@ const App: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               className="text-center"
             >
-              <h2 className="text-2xl font-bold text-white mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6 px-2">
                 🎮 게임을 시작하려면 사진을 업로드하세요
               </h2>
               <ImageUpload
@@ -341,20 +341,20 @@ const App: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center space-y-6"
+              className="text-center space-y-4 sm:space-y-6"
             >
-              <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-6 shadow-lg">
-                <h2 className="text-2xl font-bold text-white mb-4">
+              <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4 sm:p-6 shadow-lg mx-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">
                   🎯 게임 준비 완료!
                 </h2>
-                <div className="mb-6">
+                <div className="mb-4 sm:mb-6">
                   <img
                     src={selectedImage}
                     alt="Selected"
-                    className="w-64 h-64 object-cover rounded-lg shadow-lg mx-auto"
+                    className="w-48 h-48 sm:w-64 sm:h-64 object-cover rounded-lg shadow-lg mx-auto"
                   />
                 </div>
-                <p className="text-white opacity-80 mb-6">
+                <p className="text-sm sm:text-base text-white opacity-80 mb-4 sm:mb-6 px-2">
                   선택한 이미지가 {gameState.currentLevel === 1 ? '3×3' : gameState.currentLevel === 2 ? '4×4' : '5×5'}으로 분할되었습니다.
                   <br />
                   게임 시작 버튼을 눌러 퍼즐을 시작하세요!
@@ -365,7 +365,7 @@ const App: React.FC = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleStartGame}
-                    className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-lg font-bold text-lg transition-colors"
+                    className="bg-green-500 hover:bg-green-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg transition-colors"
                   >
                     🚀 게임 시작하기
                   </motion.button>
@@ -376,16 +376,16 @@ const App: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={resetGame}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-colors"
               >
                 🏠 메인으로 돌아가기
               </motion.button>
             </motion.div>
           ) : (
             // Game Screen
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Game Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                                  <GameTimer
                    timeLeft={gameState.timeLeft}
                    totalTime={180}
@@ -410,13 +410,13 @@ const App: React.FC = () => {
               />
 
                              {/* Game Controls */}
-               <div className="flex justify-center space-x-4">
+               <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4 px-2">
                  <motion.button
                    whileHover={{ scale: 1.05 }}
                    whileTap={{ scale: 0.95 }}
                    onClick={handleShufflePuzzle}
                    disabled={isShuffling}
-                   className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                   className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                      isShuffling 
                        ? 'bg-gray-400 cursor-not-allowed' 
                        : 'bg-blue-500 hover:bg-blue-600 text-white'
@@ -428,7 +428,7 @@ const App: React.FC = () => {
                    whileHover={{ scale: 1.05 }}
                    whileTap={{ scale: 0.95 }}
                    onClick={resetGame}
-                   className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                   className="bg-gray-600 hover:bg-gray-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-colors text-sm sm:text-base"
                  >
                    🏠 메인으로 돌아가기
                  </motion.button>

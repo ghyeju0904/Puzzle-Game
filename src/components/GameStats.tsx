@@ -28,12 +28,12 @@ const GameStats: React.FC<GameStatsProps> = ({ moves, level, timeLeft, totalTime
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-md mx-auto"
     >
-      <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-        <div className="grid grid-cols-2 gap-4">
+      <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3 sm:p-4 shadow-lg">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {stats.map((stat, index) => (
             <div key={index} className="text-center">
-              <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-              <div className="text-sm text-white opacity-80">{stat.label}</div>
+              <div className={`text-xl sm:text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+              <div className="text-xs sm:text-sm text-white opacity-80">{stat.label}</div>
             </div>
           ))}
         </div>

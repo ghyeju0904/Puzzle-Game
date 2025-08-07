@@ -58,7 +58,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUpload, selectedImage 
       className="w-full max-w-md mx-auto"
     >
       <div
-        className={`relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200 ${
+        className={`relative border-2 border-dashed rounded-lg p-4 sm:p-6 text-center cursor-pointer transition-all duration-200 ${
           isDragging
             ? 'border-blue-500 bg-blue-50'
             : 'border-gray-300 hover:border-gray-400'
@@ -77,24 +77,24 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUpload, selectedImage 
         />
 
         {selectedImage ? (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <img
               src={selectedImage}
               alt="Selected"
-              className="w-full h-48 object-cover rounded-lg shadow-lg"
+              className="w-full h-32 sm:h-48 object-cover rounded-lg shadow-lg"
             />
-            <p className="text-sm text-gray-600">
+            <p className="text-xs sm:text-sm text-gray-600">
               이미지가 선택되었습니다. 다른 이미지를 선택하려면 클릭하세요.
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="text-6xl">📸</div>
+          <div className="space-y-3 sm:space-y-4">
+            <div className="text-4xl sm:text-6xl">📸</div>
             <div>
-              <p className="text-lg font-medium text-gray-700">
+              <p className="text-base sm:text-lg font-medium text-gray-700">
                 사진을 업로드하세요
               </p>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-xs sm:text-sm text-gray-500 mt-2">
                 클릭하거나 이미지를 여기로 드래그하세요
               </p>
             </div>
@@ -103,7 +103,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUpload, selectedImage 
 
         {isDragging && (
           <div className="absolute inset-0 bg-blue-100 bg-opacity-50 rounded-lg flex items-center justify-center">
-            <p className="text-blue-600 font-medium">이미지를 여기에 놓으세요</p>
+            <p className="text-blue-600 font-medium text-sm sm:text-base">이미지를 여기에 놓으세요</p>
           </div>
         )}
       </div>

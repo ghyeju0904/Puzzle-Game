@@ -38,9 +38,9 @@ const GameTimer: React.FC<GameTimerProps> = ({ timeLeft, totalTime, isActive }) 
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-md mx-auto"
     >
-      <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+      <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3 sm:p-4 shadow-lg">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-white font-medium">⏱️ 남은 시간</span>
+          <span className="text-white font-medium text-sm sm:text-base">⏱️ 남은 시간</span>
           <motion.span
             key={timeLeft}
             initial={{ scale: 1.2, color: '#ff6b6b' }}
@@ -52,7 +52,7 @@ const GameTimer: React.FC<GameTimerProps> = ({ timeLeft, totalTime, isActive }) 
             transition={{
               opacity: shouldBlink ? { duration: 0.8, repeat: Infinity, ease: "easeInOut" } : {}
             }}
-            className={`text-2xl font-bold ${
+            className={`text-xl sm:text-2xl font-bold ${
               isCritical ? 'text-red-400' : isWarning ? 'text-yellow-400' : 'text-white'
             }`}
           >
@@ -61,9 +61,9 @@ const GameTimer: React.FC<GameTimerProps> = ({ timeLeft, totalTime, isActive }) 
         </div>
 
         {/* 초록색 띠가 줄어드는 프로그레스 바 */}
-        <div className="w-full bg-gray-700 rounded-full h-3 shadow-inner">
+        <div className="w-full bg-gray-700 rounded-full h-2 sm:h-3 shadow-inner">
           <motion.div
-            className={`h-3 rounded-full transition-all duration-500 ease-out shadow-lg ${progressColor}`}
+            className={`h-2 sm:h-3 rounded-full transition-all duration-500 ease-out shadow-lg ${progressColor}`}
             style={{ width: `${progress}%` }}
             initial={{ width: '100%' }}
             animate={{ 
@@ -99,7 +99,7 @@ const GameTimer: React.FC<GameTimerProps> = ({ timeLeft, totalTime, isActive }) 
             transition={{ duration: 1, repeat: Infinity }}
             className="text-center mt-2"
           >
-            <span className="text-white text-sm opacity-80">
+            <span className="text-white text-xs sm:text-sm opacity-80">
               {statusText}
             </span>
           </motion.div>

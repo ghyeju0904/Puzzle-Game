@@ -57,12 +57,12 @@ const GameResult: React.FC<GameResultProps> = ({
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50"
     >
       <motion.div
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className={`w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 ${borderColor}`}
+        className={`w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-2xl p-4 sm:p-6 ${borderColor}`}
       >
         <div className="text-center">
           {/* Icon */}
@@ -70,13 +70,13 @@ const GameResult: React.FC<GameResultProps> = ({
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring' }}
-            className="text-6xl mb-4"
+            className="text-4xl sm:text-6xl mb-3 sm:mb-4"
           >
             {icon}
           </motion.div>
 
           {/* Title */}
-          <h2 className={`text-2xl font-bold mb-2 ${titleColor}`}>
+          <h2 className={`text-xl sm:text-2xl font-bold mb-2 ${titleColor}`}>
             {title}
           </h2>
 
@@ -86,21 +86,21 @@ const GameResult: React.FC<GameResultProps> = ({
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.3, type: 'spring' }}
-              className="mb-4 p-3 bg-yellow-100 border-2 border-yellow-400 rounded-lg"
+              className="mb-3 sm:mb-4 p-2 sm:p-3 bg-yellow-100 border-2 border-yellow-400 rounded-lg"
             >
-              <div className="text-yellow-800 font-bold text-lg">
+              <div className="text-yellow-800 font-bold text-base sm:text-lg">
                 {bonusInfo.message}
               </div>
-              <div className="text-yellow-700 text-sm">
+              <div className="text-yellow-700 text-xs sm:text-sm">
                 {bonusInfo.points} 추가!
               </div>
             </motion.div>
           )}
 
           {/* Stats */}
-          <div className="space-y-2 mb-6">
+          <div className="space-y-1 sm:space-y-2 mb-4 sm:mb-6">
             {stats.map((stat, index) => (
-              <div key={index} className="flex justify-between">
+              <div key={index} className="flex justify-between text-sm sm:text-base">
                 <span className="text-gray-600">{stat.label}</span>
                 <span className={`font-semibold ${stat.className || ''}`}>{stat.value}</span>
               </div>
@@ -108,7 +108,7 @@ const GameResult: React.FC<GameResultProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {isSuccess ? (
               <>
                 {web3Connected && (
@@ -116,7 +116,7 @@ const GameResult: React.FC<GameResultProps> = ({
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={onSendReward}
-                    className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+                    className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-colors text-sm sm:text-base"
                   >
                     🪙 0.2 Puzzle Points 받기
                   </motion.button>
@@ -126,7 +126,7 @@ const GameResult: React.FC<GameResultProps> = ({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onShare}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-colors text-sm sm:text-base"
                 >
                   📤 Farcaster에 공유하기
                 </motion.button>
@@ -135,7 +135,7 @@ const GameResult: React.FC<GameResultProps> = ({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onNextLevel}
-                  className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+                  className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-colors text-sm sm:text-base"
                 >
                   다음 레벨로
                 </motion.button>
@@ -145,7 +145,7 @@ const GameResult: React.FC<GameResultProps> = ({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onRetry}
-                className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+                className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-colors text-sm sm:text-base"
               >
                 다시 시도하기
               </motion.button>
@@ -153,7 +153,7 @@ const GameResult: React.FC<GameResultProps> = ({
           </div>
 
           {!web3Connected && isSuccess && (
-            <p className="text-sm text-gray-500 mt-4">
+            <p className="text-xs sm:text-sm text-gray-500 mt-3 sm:mt-4">
               💡 보상을 받으려면 MetaMask를 연결하세요!
             </p>
           )}

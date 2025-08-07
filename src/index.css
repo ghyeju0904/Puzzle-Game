@@ -11,6 +11,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
+  /* 모바일 터치 최적화 */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 code {
@@ -35,4 +43,59 @@ code {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* 모바일 최적화 스타일 */
+@media (max-width: 640px) {
+  /* 모바일에서 텍스트 선택 허용 */
+  .selectable {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+  
+  /* 모바일에서 터치 영역 확대 */
+  button, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* 모바일에서 스크롤 최적화 */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* 모바일에서 터치 피드백 */
+@media (hover: none) and (pointer: coarse) {
+  button:hover {
+    transform: none !important;
+  }
+  
+  button:active {
+    transform: scale(0.95) !important;
+  }
+}
+
+/* 모바일에서 포커스 표시 개선 */
+@media (max-width: 640px) {
+  button:focus,
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+}
+
+/* 모바일에서 애니메이션 최적화 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 } 

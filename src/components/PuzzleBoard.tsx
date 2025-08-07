@@ -32,7 +32,21 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
   const [solutionMoves, setSolutionMoves] = useState<PuzzleMove[]>([]);
   const [currentSolutionStep, setCurrentSolutionStep] = useState(0);
   const config = useMemo(() => getConfigByTotalPieces(pieces.length), [pieces.length]);
-  const boardSize = useMemo(() => Math.min(window.innerWidth - 40, 400), []);
+  
+  // 반응형 보드 크기 계산
+  const boardSize = useMemo(() => {
+    const screenWidth = window.innerWidth;
+    
+    // 모바일에서는 화면 크기에 따라 조정
+    if (screenWidth < 640) { // sm 브레이크포인트
+      return Math.min(screenWidth - 32, 280); // 모바일에서 최대 280px
+    } else if (screenWidth < 768) { // md 브레이크포인트
+      return Math.min(screenWidth - 48, 320); // 태블릿에서 최대 320px
+    } else {
+      return Math.min(screenWidth - 80, 400); // 데스크톱에서 최대 400px
+    }
+  }, []);
+  
   const pieceSize = useMemo(() => boardSize / config.cols, [boardSize, config.cols]);
 
   // 기준칸과 인접한 조각만 이동 가능한지 확인
@@ -293,16 +307,16 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
 
   return (
     <div
-      className="flex flex-col items-center space-y-4"
+      className="flex flex-col items-center space-y-3 sm:space-y-4"
     >
-      <div className="text-center mb-4">
-        <h3 className="text-xl font-bold text-white mb-2">
+      <div className="text-center mb-3 sm:mb-4 px-2">
+        <h3 className="text-lg sm:text-xl font-bold text-white mb-2">
           레벨 {level} - {config.rows}x{config.cols} 퍼즐
         </h3>
-        <p className="text-white opacity-80">
+        <p className="text-xs sm:text-sm text-white opacity-80">
           기준칸과 인접한 칸을 클릭하면 바로 이동합니다
         </p>
-        <p className="text-xs text-green-400 mt-2">
+        <p className="text-xs text-green-400 mt-1 sm:mt-2">
           📋 이동 규칙: 빈 칸과 상하좌우로 인접한 조각만 이동 가능
         </p>
         <p className="text-xs text-blue-400 mt-1">
@@ -310,11 +324,11 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
         </p>
         
         {/* 힌트 버튼 */}
-        <div className="mt-4">
+        <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-2">
           <button
             onClick={handleHintClick}
             disabled={movablePiecesCount === 0 || isAnimating}
-            className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+            className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 text-xs sm:text-sm ${
               movablePiecesCount === 0 || isAnimating
                 ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                 : 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg hover:shadow-xl'
@@ -327,7 +341,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           <button
             onClick={handleAutoSolve}
             disabled={isAutoSolving || isAnimating}
-            className={`ml-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+            className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 text-xs sm:text-sm ${
               isAutoSolving || isAnimating
                 ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
@@ -335,9 +349,10 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           >
             🤖 자동 해결
           </button>
+        </div>
           
           {showHint && hintPiece && (
-            <div className="mt-2 p-3 bg-purple-900 bg-opacity-50 rounded-lg">
+            <div className="mt-2 p-2 sm:p-3 bg-purple-900 bg-opacity-50 rounded-lg mx-2">
               <p className="text-xs text-purple-300 mb-2">
                 💡 원본 상태로 돌아가는 힌트: {hintPiece.piece.id + 1}번 조각을 {hintPiece.move ? hintPiece.move.direction : '이동'}해보세요!
               </p>
@@ -352,7 +367,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           
           {/* 선택된 조각 안내 */}
           {selectedPiece && (
-            <div className="mt-4 p-3 bg-yellow-900 bg-opacity-50 rounded-lg">
+            <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-yellow-900 bg-opacity-50 rounded-lg mx-2">
               <p className="text-xs text-yellow-300 mb-2">
                 🎯 선택된 조각: {selectedPiece.id + 1}번 조각
               </p>
@@ -364,7 +379,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
 
           {/* 자동 해결 진행 상황 */}
           {isAutoSolving && solutionMoves.length > 0 && (
-            <div className="mt-2 p-2 bg-blue-900 bg-opacity-50 rounded-lg">
+            <div className="mt-2 p-2 bg-blue-900 bg-opacity-50 rounded-lg mx-2">
               <p className="text-xs text-blue-300">
                 🔄 자동 해결 중... ({currentSolutionStep}/{solutionMoves.length})
               </p>
@@ -377,18 +392,17 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
             </div>
           )}
         </div>
-      </div>
 
-      {/* 퍼즐 보드와 원본 이미지를 나란히 배치 */}
-      <div className="flex items-start space-x-6">
-        {/* 원본 이미지 (왼쪽) */}
+      {/* 퍼즐 보드와 원본 이미지를 반응형으로 배치 */}
+      <div className="flex flex-col lg:flex-row items-center space-y-4 lg:space-y-0 lg:space-x-6">
+        {/* 원본 이미지 (모바일에서는 위, 데스크톱에서는 왼쪽) */}
         <div className="flex flex-col items-center">
-          <div className="text-white text-sm font-medium mb-2 opacity-80">📷 원본 이미지</div>
+          <div className="text-white text-xs sm:text-sm font-medium mb-2 opacity-80">📷 원본 이미지</div>
           <div 
             className="bg-gray-800 rounded-lg overflow-hidden shadow-lg border-2 border-gray-600"
             style={{
-              width: boardSize * 0.4, // 퍼즐 보드의 40% 크기
-              height: boardSize * 0.4,
+              width: boardSize * 0.3, // 퍼즐 보드의 30% 크기로 조정
+              height: boardSize * 0.3,
             }}
           >
             <img
@@ -396,14 +410,14 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
               alt="Original"
               className="w-full h-full object-cover opacity-70" // 살짝 투명하게 처리
               style={{
-                width: boardSize * 0.4,
-                height: boardSize * 0.4,
+                width: boardSize * 0.3,
+                height: boardSize * 0.3,
               }}
             />
           </div>
         </div>
 
-        {/* 퍼즐 보드 (오른쪽) */}
+        {/* 퍼즐 보드 */}
         <div
           className="relative bg-gray-800 rounded-lg overflow-hidden shadow-2xl"
           style={{
@@ -486,7 +500,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
               >
 
                 {!piece.isEmpty && isPieceMovable(piece) && (
-                  <div className={`absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center shadow-lg ${
+                  <div className={`absolute top-1 right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center shadow-lg ${
                     showHint && hintPiece && piece.id === hintPiece.piece.id
                       ? 'bg-purple-400'
                       : 'bg-green-400'
@@ -506,8 +520,8 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
       </div>
     </div> {/* Close the flex container for original image and puzzle board */}
 
-      <div className="text-center text-white opacity-80">
-        <p className="text-sm">
+      <div className="text-center text-white opacity-80 px-2">
+        <p className="text-xs sm:text-sm">
           총 {pieces.length}개 조각 중 {movablePiecesCount}개 이동 가능
         </p>
         <p className="text-xs text-gray-400 mt-1">
