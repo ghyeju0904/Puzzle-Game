@@ -2,13 +2,13 @@
 import React, { useMemo } from 'react';
 // @ts-ignore
 import { motion } from 'framer-motion';
-import { calculateScore } from '../utils/puzzleUtils';
 
 interface GameResultProps {
   isSuccess: boolean;
   timeLeft: number;
   moves: number;
   level: number;
+  score: number; // 실제 점수 추가
   onNextLevel: () => void;
   onRetry: () => void;
   onShare: () => void;
@@ -21,28 +21,37 @@ const GameResult: React.FC<GameResultProps> = ({
   timeLeft,
   moves,
   level,
+  score, // 실제 점수
   onNextLevel,
   onRetry,
   onShare,
   web3Connected,
   onSendReward,
 }) => {
-  const { score, timeUsed, icon, title, borderColor, titleColor } = useMemo(() => {
-    const score = calculateScore(timeLeft, moves, level);
-    const timeUsed = 60 - timeLeft;
+  const { timeUsed, icon, title, borderColor, titleColor, bonusInfo } = useMemo(() => {
+    const timeUsed = 180 - timeLeft; // 3분 기준으로 수정
     const icon = isSuccess ? '🎉' : '😿';
-    const title = isSuccess ? '퍼즐 완성!' : '시간 초과!';
+    const title = isSuccess ? '퍼즐 완성!' : score <= 0 ? '점수 소진!' : '시간 초과!';
     const borderColor = isSuccess ? 'border-green-500' : 'border-red-500';
     const titleColor = isSuccess ? 'text-green-600' : 'text-red-600';
-    return { score, timeUsed, icon, title, borderColor, titleColor };
-  }, [isSuccess, timeLeft, moves, level]);
+    
+    // 15초 이내 완성 시 보너스 정보
+    const isQuickCompletion = isSuccess && timeUsed <= 15;
+    const bonusInfo = isQuickCompletion ? {
+      show: true,
+      message: '⚡ 빠른 완성 보너스!',
+      points: '+20점'
+    } : null;
+    
+    return { timeUsed, icon, title, borderColor, titleColor, bonusInfo };
+  }, [isSuccess, timeLeft, score]);
 
   const stats = useMemo(() => [
     { label: '소요 시간:', value: `${timeUsed}초` },
     { label: '이동 횟수:', value: `${moves}회` },
     { label: '레벨:', value: level.toString() },
-    ...(isSuccess ? [{ label: '점수:', value: `${score}점`, className: 'text-green-600' }] : [])
-  ], [timeUsed, moves, level, score, isSuccess]);
+    { label: '최종 점수:', value: `${score}점`, className: score > 0 ? 'text-green-600' : 'text-red-600' }
+  ], [timeUsed, moves, level, score]);
 
   return (
     <motion.div
@@ -70,6 +79,23 @@ const GameResult: React.FC<GameResultProps> = ({
           <h2 className={`text-2xl font-bold mb-2 ${titleColor}`}>
             {title}
           </h2>
+
+          {/* Bonus Info */}
+          {bonusInfo && (
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.3, type: 'spring' }}
+              className="mb-4 p-3 bg-yellow-100 border-2 border-yellow-400 rounded-lg"
+            >
+              <div className="text-yellow-800 font-bold text-lg">
+                {bonusInfo.message}
+              </div>
+              <div className="text-yellow-700 text-sm">
+                {bonusInfo.points} 추가!
+              </div>
+            </motion.div>
+          )}
 
           {/* Stats */}
           <div className="space-y-2 mb-6">

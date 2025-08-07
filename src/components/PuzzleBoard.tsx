@@ -1,9 +1,7 @@
-// @ts-ignore
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
-// @ts-ignore
 import { motion, AnimatePresence } from 'framer-motion';
 import { PuzzlePiece } from '../types';
-import { movePiece, movePieceInDirection, getConfigByTotalPieces, autoSolvePuzzle, PuzzleMove, solvePuzzle, getMoveDirection, initializeReverseLearning, solvePuzzleWithReverseLearning, initializeOriginalStateLearning, getOriginalStateHint, getReferenceDirectionHint } from '../utils/puzzleUtils';
+import { movePieceInDirection, getConfigByTotalPieces, autoSolvePuzzle, PuzzleMove, initializeOriginalStateLearning, getReferencePathHint } from '../utils/puzzleUtils';
 
 interface PuzzleBoardProps {
   pieces: PuzzlePiece[];
@@ -22,7 +20,14 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const [hintPiece, setHintPiece] = useState<{ piece: PuzzlePiece; move: PuzzleMove | null } | null>(null);
+  const [hintPiece, setHintPiece] = useState<{ 
+    piece: PuzzlePiece; 
+    move: PuzzleMove | null;
+    pathInfo?: {
+      totalSteps: number;
+      description: string;
+    };
+  } | null>(null);
   const [isAutoSolving, setIsAutoSolving] = useState(false);
   const [solutionMoves, setSolutionMoves] = useState<PuzzleMove[]>([]);
   const [currentSolutionStep, setCurrentSolutionStep] = useState(0);
@@ -59,25 +64,31 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
 
   // 힌트 기능: 기준칸 방향 기준으로 원본 상태로 돌아가는 힌트 제시
   const getHint = useCallback(() => {
-    console.log('💡 Getting hint by reference direction...');
+    console.log('💡 Getting comprehensive reference path hint...');
     
-    // 기준칸 방향 기준 힌트 가져오기
-    const hint = getReferenceDirectionHint(pieces);
+    // 기준칸 경로 힌트 가져오기
+    const hint = getReferencePathHint(pieces);
     
     if (!hint) {
       console.log('❌ No hint available');
       return null;
     }
     
-    console.log(`🎯 Hint: Reference piece should move ${hint.direction} to swap with piece ${hint.targetPiece.id}`);
+    console.log(`🎯 Comprehensive hint: ${hint.pathDescription}`);
+    console.log(`📊 Total steps to original: ${hint.totalSteps}`);
+    console.log(`🔄 Next move: Reference piece should move ${hint.nextMove.direction} to swap with piece ${hint.nextMove.targetPiece.id + 1}`);
     
     return {
-      piece: hint.targetPiece,
+      piece: hint.nextMove.targetPiece,
       move: {
-        pieceId: hint.targetPiece.id,
-        direction: hint.direction as 'up' | 'down' | 'left' | 'right',
-        fromPosition: hint.targetPiece.currentPosition,
-        toPosition: hint.targetPiece.currentPosition // 기준칸과 교환되므로 같은 위치
+        pieceId: hint.nextMove.targetPiece.id,
+        direction: hint.nextMove.direction as 'up' | 'down' | 'left' | 'right',
+        fromPosition: hint.nextMove.targetPiece.currentPosition,
+        toPosition: hint.nextMove.targetPiece.currentPosition // 기준칸과 교환되므로 같은 위치
+      },
+      pathInfo: {
+        totalSteps: hint.totalSteps,
+        description: hint.pathDescription
       }
     };
   }, [pieces]);
@@ -177,7 +188,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
     }
   }, [pieces, executeSolutionStep]);
 
-  const [selectedPiece, setSelectedPiece] = useState<PuzzlePiece | null>(null);
+  const [selectedPiece] = useState<PuzzlePiece | null>(null);
 
   const handlePieceClick = useCallback(async (clickedPiece: PuzzlePiece) => {
     if (isAnimating) return;
@@ -228,25 +239,25 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
     setTimeout(() => setIsAnimating(false), 600);
   }, [isAnimating, pieces, onPiecesChange, onMove]);
 
-  // 선택된 조각과 인접한지 확인
-  const isAdjacentToSelected = useCallback((piece: PuzzlePiece, selectedPiece: PuzzlePiece) => {
-    const rowDiff = Math.abs(piece.currentRow - selectedPiece.currentRow);
-    const colDiff = Math.abs(piece.currentCol - selectedPiece.currentCol);
-    return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
-  }, []);
+  // 선택된 조각과 인접한지 확인 (현재 사용되지 않음)
+  // const isAdjacentToSelected = useCallback((piece: PuzzlePiece, selectedPiece: PuzzlePiece) => {
+  //   const rowDiff = Math.abs(piece.currentRow - selectedPiece.currentRow);
+  //   const colDiff = Math.abs(piece.currentCol - selectedPiece.currentCol);
+  //   return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+  // }, []);
 
-  // 선택된 조각에서 타겟 조각으로의 방향 계산
-  const getDirectionFromSelectedToTarget = useCallback((selectedPiece: PuzzlePiece, targetPiece: PuzzlePiece) => {
-    const rowDiff = targetPiece.currentRow - selectedPiece.currentRow;
-    const colDiff = targetPiece.currentCol - selectedPiece.currentCol;
-    
-    if (rowDiff === -1) return 'up';
-    if (rowDiff === 1) return 'down';
-    if (colDiff === -1) return 'left';
-    if (colDiff === 1) return 'right';
-    
-    return null;
-  }, []);
+  // 선택된 조각에서 타겟 조각으로의 방향 계산 (현재 사용되지 않음)
+  // const getDirectionFromSelectedToTarget = useCallback((selectedPiece: PuzzlePiece, targetPiece: PuzzlePiece) => {
+  //   const rowDiff = targetPiece.currentRow - selectedPiece.currentRow;
+  //   const colDiff = targetPiece.currentCol - selectedPiece.currentCol;
+  //   
+  //   if (rowDiff === -1) return 'up';
+  //   if (rowDiff === 1) return 'down';
+  //   if (colDiff === -1) return 'left';
+  //   if (colDiff === 1) return 'right';
+  //   
+  //   return null;
+  // }, []);
 
   const getPieceStyle = useCallback((piece: PuzzlePiece) => {
     // 배경 이미지 위치 계산 - correctPosition을 기준으로 해당 조각이 원래 있어야 할 위치 계산
@@ -281,9 +292,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+    <div
       className="flex flex-col items-center space-y-4"
     >
       <div className="text-center mb-4">
@@ -328,17 +337,17 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           </button>
           
           {showHint && hintPiece && (
-            <p className="text-xs text-purple-400 mt-2"
-               style={{
-                 animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-               }}>
-              💡 원본 상태로 돌아가는 힌트: {hintPiece.piece.id}번 조각을 {hintPiece.move ? hintPiece.move.direction : '이동'}해보세요!
-              {hintPiece.move && (
-                <span className="block text-xs mt-1 opacity-90">
-                  🎯 원본 상태 복원 경로: {hintPiece.move.direction} 방향
-                </span>
+            <div className="mt-2 p-3 bg-purple-900 bg-opacity-50 rounded-lg">
+              <p className="text-xs text-purple-300 mb-2">
+                💡 원본 상태로 돌아가는 힌트: {hintPiece.piece.id + 1}번 조각을 {hintPiece.move ? hintPiece.move.direction : '이동'}해보세요!
+              </p>
+              {hintPiece.pathInfo && (
+                <div className="text-xs text-purple-200 space-y-1">
+                  <p>📊 총 {hintPiece.pathInfo.totalSteps}단계 이동이 필요합니다</p>
+                  <p>🎯 {hintPiece.pathInfo.description}</p>
+                </div>
               )}
-            </p>
+            </div>
           )}
           
           {/* 선택된 조각 안내 */}
@@ -370,14 +379,39 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
         </div>
       </div>
 
-      <div
-        className="relative bg-gray-800 rounded-lg overflow-hidden shadow-2xl"
-        style={{
-          width: boardSize,
-          height: boardSize,
-          position: 'relative',
-        }}
-      >
+      {/* 퍼즐 보드와 원본 이미지를 나란히 배치 */}
+      <div className="flex items-start space-x-6">
+        {/* 원본 이미지 (왼쪽) */}
+        <div className="flex flex-col items-center">
+          <div className="text-white text-sm font-medium mb-2 opacity-80">📷 원본 이미지</div>
+          <div 
+            className="bg-gray-800 rounded-lg overflow-hidden shadow-lg border-2 border-gray-600"
+            style={{
+              width: boardSize * 0.4, // 퍼즐 보드의 40% 크기
+              height: boardSize * 0.4,
+            }}
+          >
+            <img
+              src={selectedImage}
+              alt="Original"
+              className="w-full h-full object-cover opacity-70" // 살짝 투명하게 처리
+              style={{
+                width: boardSize * 0.4,
+                height: boardSize * 0.4,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* 퍼즐 보드 (오른쪽) */}
+        <div
+          className="relative bg-gray-800 rounded-lg overflow-hidden shadow-2xl"
+          style={{
+            width: boardSize,
+            height: boardSize,
+            position: 'relative',
+          }}
+        >
         <AnimatePresence>
           {pieces.map((piece) => {
             // 좌표 기반 위치 계산
@@ -470,6 +504,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           })}
         </AnimatePresence>
       </div>
+    </div> {/* Close the flex container for original image and puzzle board */}
 
       <div className="text-center text-white opacity-80">
         <p className="text-sm">
@@ -487,7 +522,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           </p>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 

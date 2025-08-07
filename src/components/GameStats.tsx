@@ -1,6 +1,4 @@
-// @ts-ignore
 import React, { useMemo } from 'react';
-// @ts-ignore
 import { motion } from 'framer-motion';
 
 interface GameStatsProps {
@@ -8,21 +6,21 @@ interface GameStatsProps {
   level: number;
   timeLeft: number;
   totalTime: number;
+  score: number; // 점수 추가
 }
 
-const GameStats: React.FC<GameStatsProps> = ({ moves, level, timeLeft, totalTime }) => {
-  const { timeUsed, efficiency } = useMemo(() => {
-    const timeUsed = totalTime - timeLeft;
-    const efficiency = moves > 0 ? (timeUsed / moves).toFixed(1) : '0.0';
-    return { timeUsed, efficiency };
-  }, [moves, timeLeft, totalTime]);
+const GameStats: React.FC<GameStatsProps> = ({ moves, level, timeLeft, totalTime, score }) => {
+  const { deductionRate } = useMemo(() => {
+    const deductionRate = moves <= 30 ? 2 : 5; // 30번째 움직임까지는 2점, 그 이후에는 5점
+    return { deductionRate };
+  }, [moves]);
 
   const stats = useMemo(() => [
-    { value: moves, label: '이동 횟수' },
-    { value: level, label: '현재 레벨' },
-    { value: `${timeUsed}s`, label: '사용 시간' },
-    { value: efficiency, label: '초/이동' }
-  ], [moves, level, timeUsed, efficiency]);
+    { value: score, label: '현재 점수', color: score <= 20 ? 'text-red-400' : score <= 50 ? 'text-yellow-400' : 'text-green-400' },
+    { value: moves, label: '이동 횟수', color: 'text-white' },
+    { value: level, label: '현재 레벨', color: 'text-white' },
+    { value: `${deductionRate}점/이동`, label: '감점 비율', color: moves > 30 ? 'text-red-400' : 'text-yellow-400' }
+  ], [moves, level, score, deductionRate]);
 
   return (
     <motion.div
@@ -34,7 +32,7 @@ const GameStats: React.FC<GameStatsProps> = ({ moves, level, timeLeft, totalTime
         <div className="grid grid-cols-2 gap-4">
           {stats.map((stat, index) => (
             <div key={index} className="text-center">
-              <div className="text-2xl font-bold text-white">{stat.value}</div>
+              <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
               <div className="text-sm text-white opacity-80">{stat.label}</div>
             </div>
           ))}

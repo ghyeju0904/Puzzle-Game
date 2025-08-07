@@ -1,42 +1,56 @@
-# 🧩 Puzzle Web3 Game
+# Puzzle Web3 App
 
-인터랙티브 퍼즐 게임으로, Web3 기술을 활용한 보상 시스템이 포함된 웹 애플리케이션입니다.
-
-## 🎮 게임 특징
-
-- **다단계 퍼즐**: 3x3, 4x4, 5x5 크기의 퍼즐
-- **9번 조각 기반 이동**: 기준칸(9번 조각)을 중심으로 한 퍼즐 이동
-- **원본 상태 복원**: 9번 조각만으로 원본 사진으로 복원 가능
-- **힌트 시스템**: 원본 상태로 돌아가는 최적 경로 제시
-- **자동 해결**: AI 기반 자동 퍼즐 해결 기능
-- **Web3 연동**: 블록체인 보상 시스템
-- **반응형 디자인**: 모바일과 데스크톱 모두 지원
+퍼즐 게임과 Web3 기능을 결합한 React 애플리케이션입니다.
 
 ## 🚀 배포 방법
 
-### Netlify로 배포하기
+### Vercel 배포 (권장)
 
-1. **GitHub에 프로젝트 업로드**
+1. **Vercel CLI 설치**
    ```bash
-   git add .
-   git commit -m "Initial commit"
-   git push origin main
+   npm i -g vercel
    ```
 
-2. **Netlify에서 배포**
-   - [Netlify](https://netlify.com)에 가입
-   - "New site from Git" 클릭
+2. **Vercel 로그인**
+   ```bash
+   vercel login
+   ```
+
+3. **프로젝트 배포**
+   ```bash
+   vercel
+   ```
+
+4. **프로덕션 배포**
+   ```bash
+   vercel --prod
+   ```
+
+### 수동 배포
+
+1. **의존성 설치**
+   ```bash
+   npm install
+   ```
+
+2. **빌드**
+   ```bash
+   npm run build
+   ```
+
+3. **Vercel 대시보드에서 배포**
+   - [Vercel](https://vercel.com)에 로그인
+   - "New Project" 클릭
    - GitHub 저장소 연결
-   - 빌드 설정:
-     - Build command: `npm run build`
-     - Publish directory: `build`
+   - 자동 배포 설정
 
-3. **자동 배포**
-   - GitHub에 코드를 푸시하면 자동으로 배포됩니다
-   - 커스텀 도메인 설정 가능
+## 🛠️ 개발 환경 설정
 
-### 로컬 개발
+### 필수 요구사항
+- Node.js 16+
+- npm 또는 yarn
 
+### 설치 및 실행
 ```bash
 # 의존성 설치
 npm install
@@ -44,41 +58,75 @@ npm install
 # 개발 서버 실행
 npm start
 
-# 프로덕션 빌드
+# 빌드
 npm run build
+
+# 테스트
+npm test
 ```
 
-## 🛠 기술 스택
+## 📁 프로젝트 구조
 
-- **Frontend**: React, TypeScript
-- **스타일링**: Tailwind CSS
-- **애니메이션**: Framer Motion
-- **사운드**: Howler.js
-- **Web3**: Ethers.js
-- **배포**: Netlify
+```
+src/
+├── components/          # React 컴포넌트
+│   ├── GameResult.tsx
+│   ├── GameStats.tsx
+│   ├── GameTimer.tsx
+│   ├── ImageUpload.tsx
+│   ├── PuzzleBoard.tsx
+│   └── WalletConnect.tsx
+├── hooks/              # 커스텀 훅
+│   ├── useSound.ts
+│   └── useWeb3.ts
+├── services/           # 서비스 로직
+│   └── web3Service.ts
+├── types/              # TypeScript 타입 정의
+│   └── index.ts
+├── utils/              # 유틸리티 함수
+│   └── puzzleUtils.ts
+└── App.tsx            # 메인 앱 컴포넌트
+```
 
-## 📱 사용법
+## 🔧 주요 기능
 
-1. **사진 업로드**: 원하는 이미지를 선택하여 업로드
-2. **게임 시작**: "게임 시작" 버튼을 클릭
-3. **퍼즐 섞기**: "퍼즐 섞기" 버튼으로 퍼즐을 섞습니다
-4. **조각 이동**: 9번 조각(은색 테두리)과 인접한 조각을 클릭하여 이동
-5. **힌트 사용**: "힌트" 버튼으로 최적 이동 경로 확인
-6. **자동 해결**: "자동 해결" 버튼으로 AI가 퍼즐을 해결
+- 🧩 퍼즐 게임 (3x3, 4x4, 5x5)
+- 🎵 사운드 효과
+- 💰 Web3 지갑 연결
+- 🎯 자동 해결 기능
+- 💡 힌트 시스템
+- 📊 게임 통계
 
-## 🎯 게임 규칙
+## 🌐 환경 변수
 
-- **기준칸**: 9번 조각(은색 테두리)만 이동 가능
-- **이동 범위**: 기준칸과 상하좌우로 인접한 조각과만 교환
-- **목표**: 원본 사진 상태로 복원
-- **시간 제한**: 3분
-- **레벨**: 3단계 (3x3, 4x4, 5x5)
+프로덕션 환경에서 필요한 환경 변수:
 
-## 🌐 공유 링크
+```env
+REACT_APP_WEB3_PROVIDER_URL=your_web3_provider_url
+REACT_APP_CONTRACT_ADDRESS=your_contract_address
+```
 
-배포 후 생성되는 Netlify URL을 통해 전 세계 어디서나 접근 가능합니다.
+## 📝 배포 노트
 
----
+- Vercel은 자동으로 `vercel.json` 설정을 사용합니다
+- SPA 라우팅을 위해 모든 경로가 `index.html`로 리다이렉트됩니다
+- 정적 파일은 캐싱 최적화가 적용됩니다
 
-**개발자**: Puzzle Web3 Team  
-**라이선스**: MIT
+## 🐛 문제 해결
+
+### 빌드 오류
+```bash
+# 캐시 클리어
+npm run build -- --reset-cache
+```
+
+### 의존성 문제
+```bash
+# node_modules 삭제 후 재설치
+rm -rf node_modules package-lock.json
+npm install
+```
+
+## 📄 라이선스
+
+MIT License

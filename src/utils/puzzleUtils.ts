@@ -37,7 +37,7 @@ export const createPuzzlePieces = (level: number): PuzzlePiece[] => {
   for (let i = 0; i < totalPieces; i++) {
     const row = Math.floor(i / config.cols);
     const col = i % config.cols;
-    const positionNumber = i + 1; // 1~totalPieces번 위치
+    // positionNumber = i + 1; // 1~totalPieces번 위치 (사용하지 않음)
     
     pieces.push({
       id: i,
@@ -430,7 +430,6 @@ export const movePiece = (piece: PuzzlePiece, pieces: PuzzlePiece[]): PuzzlePiec
   if (!canMovePiece(piece, pieces)) return pieces;
 
   // 원본 사진에서 9번째 칸에 있던 조각만 이동 가능하므로 인접한 조각과 교환
-  const config = getConfigByTotalPieces(pieces.length);
   const pieceRow = piece.currentRow;
   const pieceCol = piece.currentCol;
   
@@ -531,7 +530,7 @@ export const getMoveDirection = (
   pieces: PuzzlePiece[]
 ): 'up' | 'down' | 'left' | 'right' | null => {
   // 빈 칸이 없으므로 인접한 조각과 위치를 바꿀 수 있음
-  const config = getConfigByTotalPieces(pieces.length);
+  // const config = getConfigByTotalPieces(pieces.length);
   const pieceRow = clickedPiece.currentRow;
   const pieceCol = clickedPiece.currentCol;
   
@@ -1350,7 +1349,7 @@ class OriginalStateLearner {
   }
 
   // 이동 방향 계산
-  private getDirectionFromReferenceToTarget(referencePiece: PuzzlePiece, targetPiece: PuzzlePiece): 'up' | 'down' | 'left' | 'right' | null {
+  public getDirectionFromReferenceToTarget(referencePiece: PuzzlePiece, targetPiece: PuzzlePiece): 'up' | 'down' | 'left' | 'right' | null {
     const rowDiff = targetPiece.currentRow - referencePiece.currentRow;
     const colDiff = targetPiece.currentCol - referencePiece.currentCol;
     
@@ -1542,105 +1541,227 @@ export const getReferenceDirectionHint = (pieces: PuzzlePiece[]): { targetPiece:
   return originalStateLearner.getHintByReferenceDirection(pieces);
 };
 
-// 9번 조각을 움직여서 원본 사진을 맞출 수 있도록 섞기
-export const shuffleWithReferenceMovements = (pieces: PuzzlePiece[], level: number): PuzzlePiece[] => {
-  console.log('🔀 Starting shuffle with 9th piece movements...');
-  
-  // 원본 상태 생성 (1,2,3 / 4,5,6 / 7,8,9 순서)
-  const config = getConfigByTotalPieces(level === 1 ? 9 : level === 2 ? 16 : 25);
-  const originalPieces: PuzzlePiece[] = [];
-  
-  for (let i = 0; i < config.totalPieces; i++) {
-    const row = Math.floor(i / config.cols);
-    const col = i % config.cols;
-    
-    originalPieces.push({
-      id: i,
-      currentPosition: i,
-      correctPosition: i,
-      currentRow: row,
-      currentCol: col,
-      correctRow: row,
-      correctCol: col,
-      isEmpty: false
-    });
+// 기준칸의 원본 상태로 돌아가는 전체 경로 힌트 제공
+export const getReferencePathHint = (pieces: PuzzlePiece[]): { 
+  nextMove: { targetPiece: PuzzlePiece; direction: string };
+  totalSteps: number;
+  pathDescription: string;
+} | null => {
+  if (!originalStateLearner) {
+    console.log('❌ Original state learner not initialized');
+    return null;
   }
   
-  let shuffled = [...originalPieces];
+  // 기준칸 찾기
+  const referencePiece = pieces.find(p => p.correctPosition === 8);
+  if (!referencePiece) {
+    console.log('❌ Reference piece not found');
+    return null;
+  }
   
-  // 9번 조각(기준칸)을 중심으로 한 이동으로만 섞기
-  const maxMoves = 30; // 최대 30번의 9번 조각 이동
-  console.log(`🔄 Starting ${maxMoves} moves with 9th piece (reference piece)`);
+  // 원본 상태로 가는 경로 찾기
+  const path = originalStateLearner.findPathToOriginal(pieces);
+  if (!path || path.length === 0) {
+    console.log('❌ No path to original state found');
+    return null;
+  }
+  
+  // 첫 번째 이동 정보
+  const firstMove = path[0];
+  const targetPiece = pieces.find(p => p.id === firstMove.pieceId);
+  
+  if (!targetPiece) {
+    console.log('❌ Target piece not found');
+    return null;
+  }
+  
+  // 기준칸에서 타겟 조각으로의 방향 계산
+  const direction = originalStateLearner.getDirectionFromReferenceToTarget(referencePiece, targetPiece);
+  
+  if (!direction) {
+    console.log('❌ Direction calculation failed');
+    return null;
+  }
+  
+  // 경로 설명 생성
+  const pathDescription = generatePathDescription(path, referencePiece);
+  
+  console.log(`💡 Reference path hint: ${pathDescription}`);
+  console.log(`🎯 Next move: Reference piece should move ${direction} to swap with piece ${targetPiece.id + 1}`);
+  console.log(`📊 Total steps to original: ${path.length}`);
+  
+  return {
+    nextMove: {
+      targetPiece: targetPiece,
+      direction: direction
+    },
+    totalSteps: path.length,
+    pathDescription: pathDescription
+  };
+};
+
+// 경로 설명 생성 함수
+const generatePathDescription = (path: OriginalStateMove[], referencePiece: PuzzlePiece): string => {
+  if (path.length === 0) return '이미 원본 상태입니다';
+  
+  const stepDescriptions = path.map((move, index) => {
+    const direction = getDirectionName(move.direction);
+    return `${index + 1}단계: ${direction}`;
+  });
+  
+  const totalSteps = path.length;
+  const currentPosition = referencePiece.currentPosition + 1;
+  const targetPosition = 9; // 원본에서 기준칸의 위치
+  
+  return `기준칸(현재 ${currentPosition}번 위치)이 ${targetPosition}번 위치로 돌아가기 위해 ${totalSteps}단계 이동이 필요합니다. ${stepDescriptions.slice(0, 3).join(' → ')}${totalSteps > 3 ? '...' : ''}`;
+};
+
+// 방향 이름 변환
+const getDirectionName = (direction: string): string => {
+  switch (direction) {
+    case 'up': return '위로';
+    case 'down': return '아래로';
+    case 'left': return '왼쪽으로';
+    case 'right': return '오른쪽으로';
+    default: return direction;
+  }
+};
+
+// 9번 조각을 움직여서 원본 사진을 맞출 수 있도록 섞기
+export const shuffleWithReferenceMovements = (pieces: PuzzlePiece[], level: number): PuzzlePiece[] => {
+  console.log('🔀 Starting shuffle with 9th piece (reference piece) movements...');
+  
+  // 현재 퍼즐 상태를 복사
+  let shuffled = pieces.map(p => ({ ...p }));
+  
+  // 9번 조각(기준칸/빈칸) 찾기
+  const referencePiece = shuffled.find(p => p.correctPosition === 8);
+  if (!referencePiece) {
+    console.log('❌ Reference piece (9th piece) not found');
+    return shuffled;
+  }
+  
+  console.log(`🎯 Reference piece found at position: ${referencePiece.currentPosition + 1}`);
+  
+  // 더 효과적인 섞기를 위한 이동 패턴
+  const movePatterns = [
+    'random', 'spiral', 'zigzag', 'circular'
+  ];
+  
+  const maxMoves = 50; // 더 많은 이동으로 확실한 섞기
+  console.log(`🔄 Starting ${maxMoves} moves with reference piece`);
   
   for (let i = 0; i < maxMoves; i++) {
-    // 9번 조각 찾기 (correctPosition이 8인 조각)
-    const ninthPiece = shuffled.find(p => p.correctPosition === 8);
-    if (!ninthPiece) {
-      console.log('❌ 9th piece not found');
-      break;
-    }
+    // 현재 기준칸의 위치
+    const refRow = referencePiece.currentRow;
+    const refCol = referencePiece.currentCol;
     
-    // 9번 조각과 인접한 조각들 찾기 (상하좌우)
+    // 기준칸과 인접한 조각들 찾기 (상하좌우)
     const adjacentPieces = shuffled.filter(p => 
-      p.id !== ninthPiece.id && (
-        (Math.abs(p.currentRow - ninthPiece.currentRow) === 1 && p.currentCol === ninthPiece.currentCol) || // 위/아래로 인접
-        (Math.abs(p.currentCol - ninthPiece.currentCol) === 1 && p.currentRow === ninthPiece.currentRow)    // 좌/우로 인접
+      p.id !== referencePiece.id && (
+        (Math.abs(p.currentRow - refRow) === 1 && p.currentCol === refCol) || // 위/아래로 인접
+        (Math.abs(p.currentCol - refCol) === 1 && p.currentRow === refRow)    // 좌/우로 인접
       )
     );
     
     if (adjacentPieces.length === 0) {
-      console.log('❌ No adjacent pieces to 9th piece');
+      console.log('❌ No adjacent pieces to reference piece');
       break;
     }
     
-    // 랜덤한 인접 조각과 교환
-    const randomAdjacent = adjacentPieces[Math.floor(Math.random() * adjacentPieces.length)];
+    // 다양한 이동 패턴 적용
+    let selectedAdjacent: PuzzlePiece;
+    const pattern = movePatterns[i % movePatterns.length];
     
-    // 위치 교환
-    const tempPosition = ninthPiece.currentPosition;
-    const tempRow = ninthPiece.currentRow;
-    const tempCol = ninthPiece.currentCol;
+    switch (pattern) {
+      case 'spiral':
+        // 나선형 패턴: 위 -> 오른쪽 -> 아래 -> 왼쪽 순서로 우선순위
+        const directions = [
+          { row: refRow - 1, col: refCol }, // 위
+          { row: refRow, col: refCol + 1 }, // 오른쪽
+          { row: refRow + 1, col: refCol }, // 아래
+          { row: refRow, col: refCol - 1 }  // 왼쪽
+        ];
+        
+        selectedAdjacent = adjacentPieces.find(p => 
+          directions.some(dir => p.currentRow === dir.row && p.currentCol === dir.col)
+        ) || adjacentPieces[0];
+        break;
+        
+      case 'zigzag':
+        // 지그재그 패턴: 대각선 방향 우선
+        selectedAdjacent = adjacentPieces.find(p => 
+          Math.abs(p.currentRow - refRow) === 1 && Math.abs(p.currentCol - refCol) === 1
+        ) || adjacentPieces[Math.floor(Math.random() * adjacentPieces.length)];
+        break;
+        
+      case 'circular':
+        // 원형 패턴: 기준칸을 중심으로 원을 그리며 이동
+        const centerRow = Math.floor(level === 1 ? 3 : level === 2 ? 4 : 5) / 2;
+        const centerCol = Math.floor(level === 1 ? 3 : level === 2 ? 4 : 5) / 2;
+        
+        selectedAdjacent = adjacentPieces.find(p => {
+          const distanceFromCenter = Math.sqrt(
+            Math.pow(p.currentRow - centerRow, 2) + Math.pow(p.currentCol - centerCol, 2)
+          );
+          return distanceFromCenter > Math.sqrt(
+            Math.pow(refRow - centerRow, 2) + Math.pow(refCol - centerCol, 2)
+          );
+        }) || adjacentPieces[Math.floor(Math.random() * adjacentPieces.length)];
+        break;
+        
+      default: // random
+        selectedAdjacent = adjacentPieces[Math.floor(Math.random() * adjacentPieces.length)];
+    }
     
-    ninthPiece.currentPosition = randomAdjacent.currentPosition;
-    ninthPiece.currentRow = randomAdjacent.currentRow;
-    ninthPiece.currentCol = randomAdjacent.currentCol;
+    // 기준칸과 선택된 인접 조각의 위치 교환
+    const tempPosition = referencePiece.currentPosition;
+    const tempRow = referencePiece.currentRow;
+    const tempCol = referencePiece.currentCol;
     
-    randomAdjacent.currentPosition = tempPosition;
-    randomAdjacent.currentRow = tempRow;
-    randomAdjacent.currentCol = tempCol;
+    referencePiece.currentPosition = selectedAdjacent.currentPosition;
+    referencePiece.currentRow = selectedAdjacent.currentRow;
+    referencePiece.currentCol = selectedAdjacent.currentCol;
     
-    console.log(`🔄 Move ${i + 1}: 9th piece swapped with piece ${randomAdjacent.id}`);
+    selectedAdjacent.currentPosition = tempPosition;
+    selectedAdjacent.currentRow = tempRow;
+    selectedAdjacent.currentCol = tempCol;
+    
+    console.log(`🔄 Move ${i + 1} (${pattern}): Reference piece swapped with piece ${selectedAdjacent.id + 1}`);
   }
   
-  // 섞인 상태가 원본 상태와 다른지 확인
-  const isDifferent = shuffled.some((piece, index) => 
-    piece.currentPosition !== originalPieces[index].currentPosition
-  );
+  // 섞인 상태가 원본과 충분히 다른지 확인
+  const originalPositions = pieces.map(p => p.currentPosition);
+  const shuffledPositions = shuffled.map(p => p.currentPosition);
+  const differentPositions = originalPositions.filter((pos, index) => pos !== shuffledPositions[index]);
   
-  if (!isDifferent) {
-    console.log('⚠️ Shuffled state is same as original, doing additional moves...');
-    // 추가 이동
-    for (let i = 0; i < 15; i++) {
-      const ninthPiece = shuffled.find(p => p.correctPosition === 8);
-      if (!ninthPiece) break;
+  console.log(`📊 Shuffle result: ${differentPositions.length}/${pieces.length} pieces moved`);
+  
+  // 만약 충분히 섞이지 않았다면 추가 이동
+  if (differentPositions.length < pieces.length * 0.3) {
+    console.log('⚠️ Not enough shuffling, adding more moves...');
+    
+    for (let i = 0; i < 20; i++) {
+      const refPiece = shuffled.find(p => p.correctPosition === 8);
+      if (!refPiece) break;
       
       const adjacentPieces = shuffled.filter(p => 
-        p.id !== ninthPiece.id && (
-          (Math.abs(p.currentRow - ninthPiece.currentRow) === 1 && p.currentCol === ninthPiece.currentCol) ||
-          (Math.abs(p.currentCol - ninthPiece.currentCol) === 1 && p.currentRow === ninthPiece.currentRow)
+        p.id !== refPiece.id && (
+          (Math.abs(p.currentRow - refPiece.currentRow) === 1 && p.currentCol === refPiece.currentCol) ||
+          (Math.abs(p.currentCol - refPiece.currentCol) === 1 && p.currentRow === refPiece.currentRow)
         )
       );
       
       if (adjacentPieces.length > 0) {
         const randomAdjacent = adjacentPieces[Math.floor(Math.random() * adjacentPieces.length)];
         
-        const tempPosition = ninthPiece.currentPosition;
-        const tempRow = ninthPiece.currentRow;
-        const tempCol = ninthPiece.currentCol;
+        const tempPosition = refPiece.currentPosition;
+        const tempRow = refPiece.currentRow;
+        const tempCol = refPiece.currentCol;
         
-        ninthPiece.currentPosition = randomAdjacent.currentPosition;
-        ninthPiece.currentRow = randomAdjacent.currentRow;
-        ninthPiece.currentCol = randomAdjacent.currentCol;
+        refPiece.currentPosition = randomAdjacent.currentPosition;
+        refPiece.currentRow = randomAdjacent.currentRow;
+        refPiece.currentCol = randomAdjacent.currentCol;
         
         randomAdjacent.currentPosition = tempPosition;
         randomAdjacent.currentRow = tempRow;
@@ -1649,7 +1770,6 @@ export const shuffleWithReferenceMovements = (pieces: PuzzlePiece[], level: numb
     }
   }
   
-  console.log('✅ 9th piece-based shuffle completed');
-  console.log('🏁 Final shuffled pieces:', shuffled);
+  console.log('✅ Puzzle shuffled successfully with reference piece movements');
   return shuffled;
 }; 

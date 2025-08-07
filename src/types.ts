@@ -16,6 +16,7 @@ export interface GameState {
   currentLevel: number;
   timeLeft: number;
   moves: number;
+  score: number; // 100점부터 시작해서 움직일 때마다 5점씩 감점
   startTime: number | null;
 }
 

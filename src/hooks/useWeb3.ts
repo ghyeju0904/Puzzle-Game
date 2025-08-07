@@ -1,5 +1,5 @@
 // @ts-ignore
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Web3State } from '../types';
 import { web3Service } from '../services/web3Service';
 
@@ -36,7 +36,7 @@ export const useWeb3 = () => {
     return await web3Service.sendReward(amount);
   };
 
-  const refreshAccountInfo = async () => {
+  const refreshAccountInfo = useCallback(async () => {
     if (web3State.isConnected) {
       const accountInfo = await web3Service.getAccountInfo();
       if (accountInfo) {
@@ -47,7 +47,7 @@ export const useWeb3 = () => {
         }));
       }
     }
-  };
+  }, [web3State.isConnected]);
 
   useEffect(() => {
     // Check if MetaMask is installed

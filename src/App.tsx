@@ -11,7 +11,7 @@ import GameResult from './components/GameResult';
 import { useWeb3 } from './hooks/useWeb3';
 import { useSound } from './hooks/useSound';
 import { PuzzlePiece, GameState } from './types';
-import { createPuzzlePieces, isPuzzleCompleted, PUZZLE_CONFIGS, shufflePuzzleWithCoordinates, shuffleDividedPuzzle, shuffleWithLearnedRoute, shuffleWithReferenceMovements } from './utils/puzzleUtils';
+import { createPuzzlePieces, isPuzzleCompleted, shufflePuzzleWithCoordinates, shuffleWithReferenceMovements } from './utils/puzzleUtils';
 
 const App: React.FC = () => {
   const { web3State, sendReward } = useWeb3();
@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [pieces, setPieces] = useState<PuzzlePiece[]>([]);
   const [gameReady, setGameReady] = useState<boolean>(false); // 게임 준비 상태 추가
+  const [isShuffling, setIsShuffling] = useState<boolean>(false); // 셔플 중 상태 추가
   const [gameState, setGameState] = useState<GameState>({
     isPlaying: false,
     isCompleted: false,
@@ -27,6 +28,7 @@ const App: React.FC = () => {
     currentLevel: 1,
     timeLeft: 180, // 3분으로 변경
     moves: 0,
+    score: 100, // 100점부터 시작
     startTime: null,
   });
   const [isShuffled, setIsShuffled] = useState<boolean>(false); // 셔플 여부 추적
@@ -79,14 +81,24 @@ const App: React.FC = () => {
       
       if (completed) {
         playCheer();
+        
+        // 15초 이내 완성 시 보너스 점수 계산
+        const timeUsed = 180 - gameState.timeLeft; // 사용된 시간 계산
+        const isQuickCompletion = timeUsed <= 15; // 15초 이내 완성 여부
+        const bonusPoints = isQuickCompletion ? 20 : 0; // 보너스 점수
+        const finalScore = gameState.score + bonusPoints; // 최종 점수
+        
+        console.log(`🎉 Puzzle completed! Time used: ${timeUsed}s, Quick completion: ${isQuickCompletion}, Bonus: +${bonusPoints} points`);
+        
         setGameState(prev => ({
           ...prev,
           isPlaying: false,
           isCompleted: true,
+          score: finalScore, // 보너스 점수가 적용된 최종 점수
         }));
       }
     }
-  }, [pieces, gameState.isPlaying, isShuffled, playCheer]);
+  }, [pieces, gameState.isPlaying, gameState.moves, gameState.timeLeft, gameState.score, isShuffled, playCheer]);
 
   const handleImageUpload = useCallback((file: File) => {
     const reader = new FileReader();
@@ -135,6 +147,7 @@ const App: React.FC = () => {
        currentLevel: level,
        timeLeft: 180, // 3분으로 변경
        moves: 0,
+       score: 100, // 100점부터 시작
        startTime: Date.now(),
      });
     
@@ -157,6 +170,7 @@ const App: React.FC = () => {
          currentLevel: 1,
          timeLeft: 180, // 3분으로 변경
          moves: 0,
+         score: 100, // 100점부터 시작
          startTime: Date.now(),
        });
       setIsShuffled(false); // 게임 시작 시 셔플 상태 초기화
@@ -167,31 +181,60 @@ const App: React.FC = () => {
 
   // 셔플 버튼 핸들러 (기준칸 기반 셔플) - 여러 번 사용 가능
   const handleShufflePuzzle = useCallback(() => {
-    if (pieces.length > 0) {
+    if (pieces.length > 0 && !isShuffling) {
       console.log('🔀 Shuffle button clicked: shuffling puzzle with reference movements...');
       
-      // 기준칸을 움직여서 원본 사진으로 복귀할 수 있는 범위 내에서 섞기
-      const shuffledPieces = shuffleWithReferenceMovements([...pieces], gameState.currentLevel);
-      setPieces(shuffledPieces);
-      setIsShuffled(true); // 셔플 완료 표시
+      setIsShuffling(true); // 셔플 시작
       
-      // 셔플 횟수 표시를 위한 상태 업데이트
-      setGameState(prev => ({
-        ...prev,
-        moves: 0, // 셔플 시 이동 횟수 초기화
-      }));
-      
-      console.log('✅ Puzzle shuffled with reference movements (can be shuffled again)');
+      // 비동기로 셔플 실행 (UI 블로킹 방지)
+      setTimeout(() => {
+        // 기준칸을 움직여서 원본 사진으로 복귀할 수 있는 범위 내에서 섞기
+        const shuffledPieces = shuffleWithReferenceMovements([...pieces], gameState.currentLevel);
+        setPieces(shuffledPieces);
+        setIsShuffled(true); // 셔플 완료 표시
+        setIsShuffling(false); // 셔플 완료
+        
+        // 셔플 횟수 표시를 위한 상태 업데이트
+        setGameState(prev => ({
+          ...prev,
+          moves: 0, // 셔플 시 이동 횟수 초기화
+        }));
+        
+        console.log('✅ Puzzle shuffled with reference movements (can be shuffled again)');
+      }, 100); // 짧은 지연으로 UI 반응성 유지
     }
-  }, [pieces, gameState.currentLevel]);
+  }, [pieces, gameState.currentLevel, isShuffling]);
 
   const handlePieceMove = useCallback(() => {
     playClick();
-    setGameState(prev => ({
-      ...prev,
-      moves: prev.moves + 1,
-    }));
-  }, [playClick]);
+    setGameState(prev => {
+      const newMoves = prev.moves + 1;
+      
+      // 30번째 움직임까지는 2점씩, 그 이후에는 5점씩 감점
+      const pointsToDeduct = newMoves <= 30 ? 2 : 5;
+      const newScore = prev.score - pointsToDeduct;
+      
+      console.log(`🔄 Move ${newMoves}: Deducting ${pointsToDeduct} points (${newScore} remaining)`);
+      
+      // 점수가 0 이하가 되면 게임 실패
+      if (newScore <= 0) {
+        playMeow(); // 실패 사운드
+        return {
+          ...prev,
+          moves: newMoves,
+          score: 0,
+          isPlaying: false,
+          isFailed: true,
+        };
+      }
+      
+      return {
+        ...prev,
+        moves: newMoves,
+        score: newScore,
+      };
+    });
+  }, [playClick, playMeow]);
 
   const handleNextLevel = useCallback(() => {
     if (gameState.currentLevel < 3) {
@@ -241,6 +284,7 @@ const App: React.FC = () => {
     setPieces([]);
     setGameReady(false);
     setIsShuffled(false);
+    setIsShuffling(false); // 셔플 상태도 초기화
          setGameState({
        isPlaying: false,
        isCompleted: false,
@@ -248,6 +292,7 @@ const App: React.FC = () => {
        currentLevel: 1,
        timeLeft: 180, // 3분으로 변경
        moves: 0,
+       score: 100, // 100점부터 시작
        startTime: null,
      });
   }, []);
@@ -351,6 +396,7 @@ const App: React.FC = () => {
                    level={gameState.currentLevel}
                    timeLeft={gameState.timeLeft}
                    totalTime={180}
+                   score={gameState.score}
                  />
               </div>
 
@@ -369,9 +415,14 @@ const App: React.FC = () => {
                    whileHover={{ scale: 1.05 }}
                    whileTap={{ scale: 0.95 }}
                    onClick={handleShufflePuzzle}
-                   className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                   disabled={isShuffling}
+                   className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                     isShuffling 
+                       ? 'bg-gray-400 cursor-not-allowed' 
+                       : 'bg-blue-500 hover:bg-blue-600 text-white'
+                   }`}
                  >
-                   🎲 퍼즐 섞기 {isShuffled ? '(다시 섞기)' : '(9번 조각으로 원본 복원 가능)'}
+                   {isShuffling ? '🔄 섞는 중...' : `🎲 퍼즐 섞기 ${isShuffled ? '(다시 섞기)' : '(9번 조각으로 원본 복원 가능)'}`}
                  </motion.button>
                  <motion.button
                    whileHover={{ scale: 1.05 }}
@@ -393,6 +444,7 @@ const App: React.FC = () => {
             timeLeft={gameState.timeLeft}
             moves={gameState.moves}
             level={gameState.currentLevel}
+            score={gameState.score}
             onNextLevel={handleNextLevel}
             onRetry={handleRetry}
             onShare={handleShare}

@@ -1,30 +1,15 @@
-// @ts-ignore
 import { useEffect, useRef } from 'react';
-// @ts-ignore
-import { Howl } from 'howler';
 import { SoundEffects } from '../types';
 
 export const useSound = () => {
   const soundsRef = useRef<SoundEffects | null>(null);
 
   useEffect(() => {
-    // Initialize sounds
+    // Only create sounds if they exist (for now, we'll create empty sounds)
     soundsRef.current = {
-      click: new Howl({
-        src: ['/sounds/click.mp3'],
-        volume: 0.5,
-        preload: true,
-      }),
-      cheer: new Howl({
-        src: ['/sounds/cheer.mp3'],
-        volume: 0.7,
-        preload: true,
-      }),
-      meow: new Howl({
-        src: ['/sounds/meow.mp3'],
-        volume: 0.6,
-        preload: true,
-      }),
+      click: null, // Disabled for now
+      cheer: null, // Disabled for now
+      meow: null,  // Disabled for now
     };
 
     // Cleanup on unmount
@@ -40,21 +25,18 @@ export const useSound = () => {
   }, []);
 
   const playClick = () => {
-    if (soundsRef.current?.click) {
-      (soundsRef.current.click as any).play();
-    }
+    // Sound disabled for now
+    console.log('Click sound (disabled)');
   };
 
   const playCheer = () => {
-    if (soundsRef.current?.cheer) {
-      (soundsRef.current.cheer as any).play();
-    }
+    // Sound disabled for now
+    console.log('Cheer sound (disabled)');
   };
 
   const playMeow = () => {
-    if (soundsRef.current?.meow) {
-      (soundsRef.current.meow as any).play();
-    }
+    // Sound disabled for now
+    console.log('Meow sound (disabled)');
   };
 
   return {
